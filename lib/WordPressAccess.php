@@ -95,7 +95,7 @@ class WordPressAccess {
         return $result->fetchAll(PDO::FETCH_OBJ);
     }
 
-    public function getAllTerms() {
+    public function getAllCats() {
         static $terms;
 
         if(is_null($terms)) {
@@ -105,6 +105,7 @@ class WordPressAccess {
                 FROM ' . $this->getPrefix() . 'terms t
                 LEFT JOIN ' . $this->getPrefix() . 'term_taxonomy tt ON t.term_id = tt.term_id
                 LEFT JOIN ' . $this->getPrefix() . 'terms t_parent ON t_parent.term_id = tt.parent
+                WHERE tt.taxonomy = "category"
                 ORDER BY tt.parent ASC
             ');
             while($term = $result->fetch(PDO::FETCH_OBJ)) {

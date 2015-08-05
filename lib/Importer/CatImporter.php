@@ -17,7 +17,7 @@ class CatImporter extends Importer {
         $phpBoostCat = $phpBoostAccess->getAllNewsCats();
 
         // Récupération de la liste des categories existants dans Wordpress
-        $wordPressCat = $wordPressAccess->getAllTerms();
+        $wordPressCat = $wordPressAccess->getAllCats();
 
         // Parcours des différents utilisateurs WordPress
         foreach($wordPressCat as $cat) {
