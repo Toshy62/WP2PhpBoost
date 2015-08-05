@@ -75,6 +75,30 @@ class PHPBoostAccess {
         return $cats;
     }
 
+    /**
+     * Recherche/Crée un tag et retourne son ID
+     * @param $tag
+     * @param $rewrited_name
+     * @return int
+     */
+    public function createTagIfNotExist($tag, $rewrited_name) {
+        // Verification si le tag existe dans la table keywords
+        $query = $this->sqlAccess->prepare('SELECT id FROM ' . $this->getPrefix() . 'keywords WHERE rewrited_name = ?');
+        $query->execute(array($rewrited_name));
+        $res = $query->fetch(PDO::FETCH_OBJ);
+        if($query->rowCount() < 1) {
+            // Si le tag n'existe pas création
+            $insert = $this->sqlAccess->prepare('INSERT INTO ' . $this->getPrefix() . 'keywords(name,rewrited_name) VALUES(:name,:rewrited_name)');
+            $insert->execute(array(
+                'name' => $tag,
+                'rewrited_name' => $rewrited_name
+            ));
+            return $this->sqlAccess->lastInsertId();
+        }
+
+        return $res->id;
+    }
+
     public function getPrefix() {
         return $this->prefix;
     }

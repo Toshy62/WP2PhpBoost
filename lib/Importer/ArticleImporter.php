@@ -90,5 +90,30 @@ class ArticleImporter extends Importer {
             'approbation_type' => 1,
             'author_user_id' => $authorUserId
         ));
+
+        $newsID = $phpBoostAccess->getSql()->lastInsertId();
+
+        // Gestion des tags
+        $tags = $wordPressAccess->getPostsTags($post->ID);
+        foreach($tags as $tag) {
+            $this->addTag($phpBoostAccess, $newsID, $tag);
+        }
+    }
+
+    public function addTag(PHPBoostAccess $PHPBoostAccess, $newsID, $tag) {
+        // Verification que le tag existe
+        $id = $PHPBoostAccess->createTagIfNotExist($tag->name, $tag->slug);
+
+        // Ajout du tag à l'article
+        $insert = $PHPBoostAccess->getSql()->prepare('
+            INSERT IGNORE INTO '.$PHPBoostAccess->getPrefix().'keywords_relations(id_in_module, module_id, id_keyword)
+            VALUES (:id_in_module, :module_id, :id_keyword)
+        ');
+
+        $insert->execute(array(
+            'id_in_module' => $newsID,
+            'module_id' => 'news',
+            'id_keyword' => $id
+        ));
     }
 }

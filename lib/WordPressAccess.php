@@ -116,6 +116,22 @@ class WordPressAccess {
         return $terms;
     }
 
+    public function getPostsTags($postID) {
+        $result = $this->sqlAccess->prepare('
+            SELECT name, slug
+            FROM ' . $this->getPrefix() . 'term_relationships wtr
+            INNER JOIN ' . $this->getPrefix() . 'term_taxonomy wtt ON wtr.term_taxonomy_id = wtt.term_taxonomy_id AND taxonomy = "post_tag"
+            INNER JOIN ' . $this->getPrefix() . 'terms wt ON wt.term_id = wtt.term_id
+            WHERE object_id = ?;
+        ');
+
+        $result->execute(array(
+            $postID
+        ));
+
+        return $result->fetchAll(PDO::FETCH_OBJ);
+    }
+
     public function getAllPages() {
         return $this->getAllPosts('page');
     }
