@@ -26,8 +26,8 @@ class PHPBoostAccess {
     public function __construct($phpBoostPath, IOManager $io) {
         $this->phpBoostPath = $phpBoostPath;
         $this->io = $io;
-        define('PATH_TO_ROOT', $phpBoostPath);
-        require_once $phpBoostPath . 'kernel/db/config.php';
+        if(!defined('PATH_TO_ROOT')) define('PATH_TO_ROOT', $phpBoostPath);
+        require $phpBoostPath . 'kernel/db/config.php';
         try {
             $this->sqlAccess = new PDO('mysql:host=' . $db_connection_data['host'] . ';dbname=' . $db_connection_data['database'], $db_connection_data['login'], $db_connection_data['password']);
             $this->sqlAccess->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

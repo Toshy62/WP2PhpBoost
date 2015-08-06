@@ -22,7 +22,7 @@ abstract class Importer {
         return $availableImporter;
     }
 
-    public function run(IOManager $io, $wpPath, $pBoostPath, array $importerList) {
+    public static function run(IOManager $io, $wpPath, $pBoostPath, array $importerList) {
         $availableImporter = self::getAvailableImporter();
         $phpBoostAccess = new PHPBoostAccess($pBoostPath, $io);
         $wordPressAccess = new WordPressAccess($wpPath, $io);
