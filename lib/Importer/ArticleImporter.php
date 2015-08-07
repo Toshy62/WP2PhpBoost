@@ -54,17 +54,11 @@ class ArticleImporter extends Importer {
         // Gestion des images/media
         $medias = $wordPressAccess->getMediaForPost($post->ID);
         foreach($medias as $media) {
-            $src = $wordPressAccess->getPath() . 'wp-content/uploads/' . $media->path;
-            $dest = $phpBoostAccess->getPath() . FILESYSTEM_IMPORT_LOCATION . $media->path;
-
-            if(!is_dir(dirname($dest))) mkdir(dirname($dest), 0777, true);
-            if(!file_exists($dest)) {
+            if($this->importMedia($media, $authorUserId, $wordPressAccess, $phpBoostAccess)) {
                 $io->writeln('Info: Media ' . $media->path . ' importé.');
-                copy($src, $dest);
             } else {
-                $io->writeln('Erreur: Media ' . $media->path . ' déjà existant.');
+                $io->writeln('Erreur lors de l\'importation de ' . $media->path . ', existe t-il déjà?');
             }
-
             $post->post_content = str_replace($media->url, FILESYSTEM_IMPORT_LOCATION . $media->path, $post->post_content);
         }
 
@@ -119,5 +113,37 @@ class ArticleImporter extends Importer {
             'module_id' => 'news',
             'id_keyword' => $id
         ));
+    }
+
+    public function importMedia(stdClass $media, $userId, WordPressAccess $wordPressAccess, PHPBoostAccess $phpBoostAccess) {
+        $src = $wordPressAccess->getPath() . 'wp-content/uploads/' . $media->path;
+        $dest = $phpBoostAccess->getPath() . FILESYSTEM_IMPORT_LOCATION . $media->path;
+
+        if(!is_dir(dirname($dest))) mkdir(dirname($dest), 0777, true);
+        if(!file_exists($dest)) {
+            copy($src, $dest);
+
+            $file = pathinfo($dest);
+            $path = str_replace('upload/', '', FILESYSTEM_IMPORT_LOCATION . $media->path);
+            $path = substr($path, 0, 1) == '/' ? substr($path, 1) : $path;
+
+            // Ajout dans la base de données
+            $insert = $phpBoostAccess->getSql()->prepare('
+                INSERT IGNORE INTO '.$phpBoostAccess->getPrefix().'upload(name, path, user_id, size, type, timestamp)
+                VALUES (:name, :path, :user_id, :size, :type, :timestamp)
+            ');
+            $insert->execute(array(
+                'name' => $file['basename'],
+                'path' => $path,
+                'user_id' => $userId,
+                'size' => round(filesize($dest) / 1024),
+                'type' => $file['extension'],
+                'timestamp' => filemtime($dest)
+            ));
+
+            return true;
+        }
+
+        return false;
     }
 }
