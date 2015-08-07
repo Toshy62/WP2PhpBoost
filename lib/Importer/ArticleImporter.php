@@ -66,7 +66,7 @@ class ArticleImporter extends Importer {
         $post->post_content = preg_replace('#<img (.+)src="([^\"]+)"(.+)/>#', '<img src="$2" alt="" />', $post->post_content);
 
         // Gestion de la categorie
-        $idCategory = 0;
+        $idCategory = DEFAULT_CAT_ID;
         if(!is_null($post->term_slug)) {
             $cats = $phpBoostAccess->getAllNewsCats();
             if(array_key_exists($post->term_slug, $cats)) {
