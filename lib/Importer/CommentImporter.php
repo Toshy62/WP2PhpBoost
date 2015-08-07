@@ -13,7 +13,7 @@ class CommentImporter extends Importer {
     }
 
     public function getImporterDependency() {
-        return array('Article');
+        return array('User', 'Cat', 'Article');
     }
 
     public function import(IOManager $io, WordPressAccess $wordPressAccess, PHPBoostAccess $phpBoostAccess) {
