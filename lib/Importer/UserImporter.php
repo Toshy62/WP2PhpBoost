@@ -12,6 +12,10 @@ class UserImporter extends Importer {
         return 'dev';
     }
 
+    public function getImporterDependency() {
+        return array();
+    }
+
     public function import(IOManager $io, WordPressAccess $wordPressAccess, PHPBoostAccess $phpBoostAccess) {
         // Récupération de la liste des utilisateurs existants dans PHPBoost
         $phpBoostUsers = $phpBoostAccess->getAllUsers();

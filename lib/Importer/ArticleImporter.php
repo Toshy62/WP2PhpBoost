@@ -13,6 +13,10 @@ class ArticleImporter extends Importer {
         return 'dev';
     }
 
+    public function getImporterDependency() {
+        return array('User', 'Cat');
+    }
+
     public function import(IOManager $io, WordPressAccess $wordPressAccess, PHPBoostAccess $phpBoostAccess) {
         // Récupération de tous les articles Wordpress
         $wpPost = $wordPressAccess->getAllPosts();

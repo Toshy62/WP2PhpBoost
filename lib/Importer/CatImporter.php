@@ -12,6 +12,10 @@ class CatImporter extends Importer {
         return 'dev';
     }
 
+    public function getImporterDependency() {
+        return array();
+    }
+
     public function import(IOManager $io, WordPressAccess $wordPressAccess, PHPBoostAccess $phpBoostAccess) {
         // Récupération de la liste des categories existants dans PHPBoost
         $phpBoostCat = $phpBoostAccess->getAllNewsCats();

@@ -13,6 +13,7 @@ abstract class Importer {
                         'name' => $importer->getImporterName(),
                         'version' => $importer->getImporterVersion(),
                         'description' => $importer->getImporterDescription(),
+                        'dependency' => $importer->getImporterDependency(),
                         'className' => $className
                     );
                 }
@@ -24,6 +25,7 @@ abstract class Importer {
 
     public static function run(IOManager $io, $wpPath, $pBoostPath, array $importerList) {
         $availableImporter = self::getAvailableImporter();
+        $importerList = self::sortImporterList($importerList);
         $phpBoostAccess = new PHPBoostAccess($pBoostPath, $io);
         $wordPressAccess = new WordPressAccess($wpPath, $io);
 
@@ -35,8 +37,33 @@ abstract class Importer {
         }
     }
 
+    private static function sortImporterList($importerList) {
+        $availableImporter = self::getAvailableImporter();
+
+        $importerListWithInformation = array();
+
+        foreach($importerList as $importerName) {
+            $importerListWithInformation[$importerName] = $availableImporter[$importerName];
+        }
+
+        uasort($importerListWithInformation, function($importerA, $importerB) {
+            if(in_array($importerA['name'], $importerB['dependency'])) {
+                // Si l'importateur B dépends de l'importateur A
+                return -1;
+            } elseif(in_array($importerB['name'], $importerA['dependency'])) {
+                // Si l'importateur A dépends de l'importateur B
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        return array_keys($importerListWithInformation);
+    }
+
     public abstract function import(IOManager $io, WordPressAccess $wordPressAccess, PHPBoostAccess $phpBoostAccess);
     public abstract function getImporterName();
     public abstract function getImporterDescription();
     public abstract function getImporterVersion();
+    public abstract function getImporterDependency();
 }
