@@ -39,28 +39,20 @@ class PHPBoostAccess {
     }
 
     public function getAllUsers() {
-        static $users;
-
-        if(is_null($users)) {
-            $users = array();
-            $result = $this->sqlAccess->query('SELECT * FROM ' . $this->getPrefix() . 'member');
-            while($user = $result->fetch(PDO::FETCH_OBJ)) {
-                $users[$user->login] = $user;
-            }
+        $users = array();
+        $result = $this->sqlAccess->query('SELECT * FROM ' . $this->getPrefix() . 'member');
+        while($user = $result->fetch(PDO::FETCH_OBJ)) {
+            $users[$user->login] = $user;
         }
         
         return $users;
     }
 
     public function getAllPosts() {
-        static $posts;
-
-        if(is_null($posts)) {
-            $posts = array();
-            $result = $this->sqlAccess->query('SELECT * FROM ' . $this->getPrefix() . 'news');
-            while($post = $result->fetch(PDO::FETCH_OBJ)) {
-                $posts[$post->rewrited_name] = $post;
-            }
+        $posts = array();
+        $result = $this->sqlAccess->query('SELECT n.*, nc.id AS category_id, nc.rewrited_name AS category_slug FROM ' . $this->getPrefix() . 'news n LEFT JOIN ' . $this->getPrefix() . 'news_cats nc ON nc.id = n.id_category');
+        while($post = $result->fetch(PDO::FETCH_OBJ)) {
+            $posts[$post->rewrited_name] = $post;
         }
 
         return $posts;
