@@ -64,7 +64,7 @@ class WordPressAccess {
                     ON wpm_ori.post_id = wp.ID AND wpm_ori.meta_key = "_thumbnail_id"
                 LEFT JOIN '.$this->getPrefix().'postmeta wp_thumbnail
                     ON wpm_ori.meta_value = wp_thumbnail.post_id AND wp_thumbnail.meta_key = "_wp_attached_file"
-                LEFT JOIN wordpress.wp_users u
+                LEFT JOIN ' . $this->getPrefix() . 'users u
                     ON u.ID = wp.post_author
                 WHERE wp.post_status = "publish" AND wp.post_type = ?
             ');
@@ -125,6 +125,27 @@ class WordPressAccess {
         ));
 
         return $result->fetchAll(PDO::FETCH_OBJ);
+    }
+    
+    public function getAllComments() {
+        $result = $this->sqlAccess->prepare('
+            SELECT wc.*, wp.post_name as post_title_slug
+            FROM ' . $this->getPrefix() . 'comments wc
+            INNER JOIN ' . $this->getPrefix() . 'posts wp ON wp.ID = wc.comment_post_ID
+            WHERE wp.post_type = "post"
+        ');
+        $result->execute();
+
+        $comments = array();
+        while($comment = $result->fetchObject()) {
+            if(array_key_exists($comment->post_title_slug, $comments)) {
+                $comments[$comment->post_title_slug] = array();
+            }
+
+            $comments[$comment->post_title_slug][] = $comment;
+        }
+
+        return $comments;
     }
 
     public function getAllPages() {
