@@ -28,31 +28,34 @@ class PHPBoostAccess {
         $this->io = $io;
         if(!defined('PATH_TO_ROOT')) define('PATH_TO_ROOT', $phpBoostPath);
         require $phpBoostPath . 'kernel/db/config.php';
-        try {
-            $this->sqlAccess = new PDO('mysql:host=' . $db_connection_data['host'] . ';dbname=' . $db_connection_data['database'], $db_connection_data['login'], $db_connection_data['password']);
-            $this->sqlAccess->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch(PDOException $e) {
-            $this->io->writeln($e->getMessage());
-            exit();
-        }
+        $this->sqlAccess = new PDO('mysql:host=' . $db_connection_data['host'] . ';dbname=' . $db_connection_data['database'], $db_connection_data['login'], $db_connection_data['password']);
+        $this->sqlAccess->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->prefix = PREFIX;
     }
 
     public function getAllUsers() {
-        $users = array();
-        $result = $this->sqlAccess->query('SELECT * FROM ' . $this->getPrefix() . 'member');
-        while($user = $result->fetch(PDO::FETCH_OBJ)) {
-            $users[$user->login] = $user;
+        static $users;
+
+        if(is_null($users)) {
+            $users = array();
+            $result = $this->sqlAccess->query('SELECT * FROM ' . $this->getPrefix() . 'member');
+            while($user = $result->fetch(PDO::FETCH_OBJ)) {
+                $users[$user->login] = $user;
+            }
         }
         
         return $users;
     }
 
     public function getAllPosts() {
-        $posts = array();
-        $result = $this->sqlAccess->query('SELECT n.*, nc.id AS category_id, nc.rewrited_name AS category_slug FROM ' . $this->getPrefix() . 'news n LEFT JOIN ' . $this->getPrefix() . 'news_cats nc ON nc.id = n.id_category');
-        while($post = $result->fetch(PDO::FETCH_OBJ)) {
-            $posts[$post->rewrited_name] = $post;
+        static $posts;
+
+        if(is_null($posts)) {
+            $posts = array();
+            $result = $this->sqlAccess->query('SELECT * FROM ' . $this->getPrefix() . 'news');
+            while($post = $result->fetch(PDO::FETCH_OBJ)) {
+                $posts[$post->rewrited_name] = $post;
+            }
         }
 
         return $posts;

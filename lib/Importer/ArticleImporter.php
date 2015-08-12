@@ -66,7 +66,7 @@ class ArticleImporter extends Importer {
         $post->post_content = preg_replace('#<img (.+)src="([^\"]+)"(.+)/>#', '<img src="$2" alt="" />', $post->post_content);
 
         // Gestion de la categorie
-        $idCategory = DEFAULT_CAT_ID;
+        $idCategory = 0;
         if(!is_null($post->term_slug)) {
             $cats = $phpBoostAccess->getAllNewsCats();
             if(array_key_exists($post->term_slug, $cats)) {
@@ -124,17 +124,15 @@ class ArticleImporter extends Importer {
             copy($src, $dest);
 
             $file = pathinfo($dest);
-            $path = str_replace('upload/', '', FILESYSTEM_IMPORT_LOCATION . $media->path);
-            $path = substr($path, 0, 1) == '/' ? substr($path, 1) : $path;
 
             // Ajout dans la base de données
             $insert = $phpBoostAccess->getSql()->prepare('
-                INSERT IGNORE INTO '.$phpBoostAccess->getPrefix().'upload(name, path, user_id, size, type, timestamp)
+                INSERT IGNORE INTO '.$PHPBoostAccess->getPrefix().'upload(name, path, user_id, size, type, timestamp)
                 VALUES (:name, :path, :user_id, :size, :type, :timestamp)
             ');
             $insert->execute(array(
                 'name' => $file['basename'],
-                'path' => $path,
+                'path' => str_replace('upload/', '', FILESYSTEM_IMPORT_LOCATION . $media->path),
                 'user_id' => $userId,
                 'size' => round(filesize($dest) / 1024),
                 'type' => $file['extension'],

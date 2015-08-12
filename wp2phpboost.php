@@ -1,4 +1,10 @@
 <?php
+function imp_error($errno, $errstr, $errfile, $errline, $errcontext) {
+    throw new Exception($errfile . '(' . $errline . ') : ' . $errstr, $errno);
+}
+
+set_error_handler('imp_error', E_ALL);
+
 require_once __DIR__ . '/lib/IOManager.php';
 require_once __DIR__ . '/lib/IOCliManager.php';
 require_once __DIR__ . '/lib/Importer.php';
@@ -6,6 +12,12 @@ require_once __DIR__ . '/lib/PHPBoostAccess.php';
 require_once __DIR__ . '/lib/WordPressAccess.php';
 
 $io = new IOCliManager();
+
+function checkPhpVersion() {
+    if(phpversion() < '5.4') {
+        throw new Exception('WP2PhpBoost require php 5.4 or never');
+    }
+}
 
 /**
  * Get the wordpress instance path
@@ -73,21 +85,28 @@ function getImporterList() {
     define('IMPORTER_LIST', implode(',', $importerList));
     return true;
 }
+try {
+    checkPhpVersion();
 
-if(file_exists(__DIR__ . '/config.php')) require_once __DIR__ . '/config.php';
+    if (file_exists(__DIR__ . '/config.php')) require_once __DIR__ . '/config.php';
 
-while(!defined('WP_PATH')) getWpPath();
-while(!defined('PBOOST_PATH')) getPhpBoostPath();
+    while (!defined('WP_PATH')) getWpPath();
+    while (!defined('PBOOST_PATH')) getPhpBoostPath();
 
-while(!defined('IMPORTER_LIST')) getImporterList();
+    while (!defined('IMPORTER_LIST')) getImporterList();
 
 // Récupération de la configuration par défaut
-$defaultConfig = require_once __DIR__ . '/config-default.php';
-foreach($defaultConfig as $key => $value) {
-    if(!defined($key)) {
-        define($key, $value);
+    $defaultConfig = require_once __DIR__ . '/config-default.php';
+    foreach ($defaultConfig as $key => $value) {
+        if (!defined($key)) {
+            define($key, $value);
+        }
     }
-}
 
-Importer::run($io, WP_PATH, PBOOST_PATH, explode(',', IMPORTER_LIST));
+    Importer::run($io, WP_PATH, PBOOST_PATH, explode(',', IMPORTER_LIST));
+    return true;
+} catch(Exception $e) {
+    $io->writeln($e->getMessage());
+    return false;
+}
 ?>
