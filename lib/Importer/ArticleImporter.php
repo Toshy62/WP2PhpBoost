@@ -127,7 +127,7 @@ class ArticleImporter extends Importer {
 
             // Ajout dans la base de données
             $insert = $phpBoostAccess->getSql()->prepare('
-                INSERT IGNORE INTO '.$PHPBoostAccess->getPrefix().'upload(name, path, user_id, size, type, timestamp)
+                INSERT IGNORE INTO '.$phpBoostAccess->getPrefix().'upload(name, path, user_id, size, type, timestamp)
                 VALUES (:name, :path, :user_id, :size, :type, :timestamp)
             ');
             $insert->execute(array(
