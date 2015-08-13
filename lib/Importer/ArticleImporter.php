@@ -57,7 +57,7 @@ class ArticleImporter extends Importer {
             if($this->importMedia($media, $authorUserId, $wordPressAccess, $phpBoostAccess)) {
                 $io->writeln('Info: Media ' . $media->path . ' importé.');
             } else {
-                $io->writeln('Erreur lors de l\'importation de ' . $media->path . ', existe t-il déjà?');
+                $io->writeln('Erreur lors de l\'importation de ' . $media->path . ', soit la destination existe déjà où la source est inexistante.');
             }
             $post->post_content = str_replace($media->url, FILESYSTEM_IMPORT_LOCATION . $media->path, $post->post_content);
         }
@@ -120,7 +120,7 @@ class ArticleImporter extends Importer {
         $dest = $phpBoostAccess->getPath() . FILESYSTEM_IMPORT_LOCATION . $media->path;
 
         if(!is_dir(dirname($dest))) mkdir(dirname($dest), 0777, true);
-        if(!file_exists($dest)) {
+        if(!file_exists($dest) && file_exists($src)) {
             copy($src, $dest);
 
             $file = pathinfo($dest);
