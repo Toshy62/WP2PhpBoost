@@ -64,6 +64,8 @@ class ArticleImporter extends Importer {
 
         // Nettoyage du code des images
         $post->post_content = preg_replace('#<img (.+)src="([^\"]+)"(.+)/>#', '<img src="$2" alt="" />', $post->post_content);
+        // Gestion du caption
+        $post->post_content = preg_replace('#\[caption(.+)align="align(center|left|right)"(.+)\](.+)</a>(.+)\[\/caption\]#', '<p style="text-align:$2">$4</a><br>$5</p>', $post->post_content);
 
         // Gestion de la categorie
         $idCategory = 0;
