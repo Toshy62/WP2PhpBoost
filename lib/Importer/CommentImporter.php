@@ -31,7 +31,7 @@ class CommentImporter extends Importer {
             $news = $phpBoostNews[$newsSlug];
 
             // On vérifie que la news existe dans comments_topic
-            $topic_id = $this->createCommentsTopic($phpBoostAccess, $news);
+            $topic_id = $this->createCommentsTopic($wordPressAccess, $phpBoostAccess, $news);
 
             foreach($comments as $comment) {
                 // On ajoute chaque commentaire
@@ -45,7 +45,13 @@ class CommentImporter extends Importer {
         }
     }
 
-    public function createCommentsTopic(PHPBoostAccess $PHPBoostAccess, stdClass $news) {
+    public function createCommentsTopic(WordPressAccess $wordPressAccess, PHPBoostAccess $PHPBoostAccess, stdClass $news) {
+        // Récupération du statut des commentaires (ouvert/fermé) dans Wordpress
+        $posts = $wordPressAccess->getAllPosts();
+        if(isset($posts[$news->rewrited_name])) {
+            $commentsOpen = $posts[$news->rewrited_name]->comment_status != 'open';
+        }
+
         $count = $PHPBoostAccess->getSql()->prepare('
             SELECT id_topic
             FROM ' . $PHPBoostAccess->getPrefix(). 'comments_topic
@@ -68,14 +74,24 @@ class CommentImporter extends Importer {
                 'module_id' => 'news',
                 'topic_identifier' => 'default',
                 'id_in_module' => $news->id,
-                'is_locked' => 0,
+                'is_locked' => $commentsOpen,
                 'number_comments' => 0,
                 'path' => $path
             ));
 
             return $PHPBoostAccess->getSql()->lastInsertId();
         } else {
-            return $count->fetchObject()->id_topic;
+            $id_topic = $count->fetchObject()->id_topic;
+            $update = $PHPBoostAccess->getSql()->prepare('
+                UPDATE ' . $PHPBoostAccess->getPrefix(). 'comments_topic
+                SET is_locked = :is_locked
+                WHERE id_topic = :id_topic
+            ');
+            $update->execute(array(
+                'is_locked' => $commentsOpen,
+                'id_topic' => $id_topic
+            ));
+            return $id_topic;
         }
     }
 
