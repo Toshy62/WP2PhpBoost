@@ -9,7 +9,7 @@ class UserImporter extends Importer {
     }
 
     public function getImporterVersion() {
-        return 'dev';
+        return '4.1.0-alpha';
     }
 
     public function getImporterDependency() {
